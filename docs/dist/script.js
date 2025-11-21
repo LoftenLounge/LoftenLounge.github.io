@@ -64,6 +64,9 @@ class MyClass {
             hadNipple: false,
             hadFullscreen: false,
             forceAngry: false,
+            ricePlugin: false,
+            useVBO: false,
+            darkMode: getSystemDarkMode(),
             remapPlayer1: true,
             remapOptions: false,
             remapGameshark: false,
@@ -523,7 +526,10 @@ class MyClass {
         if (this.rivetsData.mouseMode) configString += "1" + "\r\n"; else configString += "0" + "\r\n";
 
         //use vbo
-        if (this.iosMode) configString += "1" + "\r\n"; else configString += "0" + "\r\n";
+        if (this.iosMode || this.rivetsData.useVBO) configString += "1" + "\r\n"; else configString += "0" + "\r\n";
+
+        //rice plugin
+        if (this.rivetsData.ricePlugin) configString += "1" + "\r\n"; else configString += "0" + "\r\n";
 
         FS.writeFile('config.txt',configString);
 
@@ -1266,6 +1272,9 @@ class MyClass {
         this.setFromLocalStorage('n64wasm-settingMobile','settingMobile');
         this.setFromLocalStorage('n64wasm-mouseMode','mouseMode');
         this.setFromLocalStorage('n64wasm-forceAngry','forceAngry');
+        this.setFromLocalStorage('n64wasm-ricePlugin','ricePlugin');
+        this.setFromLocalStorage('n64wasm-useVBO','useVBO');
+        this.setFromLocalStorage('n64wasm-darkMode','darkMode');
 
     }
 
@@ -1279,7 +1288,10 @@ class MyClass {
         this.rivetsData.invert4P = this.rivetsData.invert4PTemp;
         this.rivetsData.disableAudioSync = this.rivetsData.disableAudioSyncTemp;
         this.rivetsData.settingMobile = this.rivetsData.settingMobileTemp;
-        this.rivetsData.forceAngry = this.rivetsData.forceAngryTemp;
+        this.rivetsData.forceAngry = this.rivetsData.pluginTemp == 'angry';
+        this.rivetsData.ricePlugin = this.rivetsData.pluginTemp == 'rice';
+        this.rivetsData.useVBO = this.rivetsData.useVBOTemp;
+        this.rivetsData.darkMode = this.rivetsData.darkModeTemp;
 
         this.setToLocalStorage('n64wasm-showfps','showFPS');
         this.setToLocalStorage('n64wasm-disableaudiosyncnew','disableAudioSync');
@@ -1290,7 +1302,10 @@ class MyClass {
         this.setToLocalStorage('n64wasm-invert4P','invert4P');
         this.setToLocalStorage('n64wasm-settingMobile','settingMobile');
         this.setToLocalStorage('n64wasm-forceAngry','forceAngry');
-        
+        this.setToLocalStorage('n64wasm-ricePlugin','ricePlugin');
+        this.setToLocalStorage('n64wasm-useVBO','useVBO');
+        this.setToLocalStorage('n64wasm-darkMode','darkMode');
+
     }
 
 
@@ -1308,7 +1323,11 @@ class MyClass {
         this.rivetsData.invert4PTemp = this.rivetsData.invert4P;
         this.rivetsData.disableAudioSyncTemp = this.rivetsData.disableAudioSync;
         this.rivetsData.settingMobileTemp = this.rivetsData.settingMobile;
-        this.rivetsData.forceAngryTemp = this.rivetsData.forceAngry;
+        this.rivetsData.pluginTemp = 'glide';
+        if (this.rivetsData.forceAngry) this.rivetsData.pluginTemp = 'angry';
+        if (this.rivetsData.ricePlugin) this.rivetsData.pluginTemp = 'rice';
+        this.rivetsData.useVBOTemp = this.rivetsData.useVBO;
+        this.rivetsData.darkModeTemp = this.rivetsData.darkMode;
 
         //start input loop
         if (!this.rivetsData.inputLoopStarted)
@@ -1433,7 +1452,9 @@ class MyClass {
         this.rivetsData.invert4PTemp = false;
         this.rivetsData.disableAudioSyncTemp = true;
         this.rivetsData.settingMobileTemp = 'Auto';
-        this.rivetsData.forceAngryTemp = false;
+        this.rivetsData.pluginTemp = 'glide';
+        this.rivetsData.useVBOTemp = false;
+        this.rivetsData.darkModeTemp = getSystemDarkMode();
     }
 
     remapPressed() {
@@ -1593,7 +1614,16 @@ class MyClass {
     localCallback(){
     }
     
-    
+    // change mode on click
+    listenForDarkModeCheckbox(){
+        $(document).on("change", "input[name='darkmode']", function () {
+            if (this.checked) {
+                document.documentElement.dataset.darkmode = true;
+            } else {
+                document.documentElement.removeAttribute("data-darkmode");
+            }
+        });
+    }
 }
 let myClass = new MyClass();
 window["myApp"] = myClass; //so that I can reference from EM_ASM
@@ -1616,3 +1646,4 @@ var script2 = document.createElement('script');
 script2.src = 'input_controller.js?v=' + rando2;
 document.getElementsByTagName('head')[0].appendChild(script2);
 
+myClass.listenForDarkModeCheckbox();
